@@ -3,7 +3,7 @@
 import os
 import signal
 import sys
-
+# import requests
 from channel import channel_factory
 from common.log import logger
 from config import conf, load_config

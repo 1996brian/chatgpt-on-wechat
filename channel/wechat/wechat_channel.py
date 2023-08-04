@@ -10,7 +10,7 @@ import os
 import threading
 import time
 
-import requests
+# import requests
 
 from bridge.context import *
 from bridge.reply import *
@@ -121,9 +121,47 @@ class WechatChannel(ChatChannel):
         self.user_id = itchat.instance.storageClass.userName
         self.name = itchat.instance.storageClass.nickName
         logger.info("Wechat login success, user_id: {}, nickname: {}".format(self.user_id, self.name))
+
+
+        # 开启定时群聊任务
+        self.group_message_thread = threading.Thread(target=self.send_regular_message)
+        self.group_message_thread.start()
+
+
         # start message listener
         itchat.run()
 
+
+    def send_regular_message(self):
+        group_id = self.get_group_id('我的机器人')
+
+        gif_path = './resource/gifs'
+        duration = 60*5
+        while True:
+            print(group_id)
+            # 判断图片是否存在
+            # if not os.path.exists(gif_path):
+            #     print('未存在')
+            #     break
+            # response = itchat.send_image(gif_path, toUserName=group_id)
+            response = itchat.send_msg('定时任务', toUserName=group_id)
+            # 判断图片是否发送成功
+            if response['BaseResponse']['ErrMsg'] != '请求成功':
+                print('发送失败')
+            else:
+                print('发送成功')
+            time.sleep(duration)
+
+
+    def get_group_id(self, group_name):
+
+        groups = itchat.search_chatrooms(name=group_name)
+        if groups:
+            return groups[0]['UserName']
+        else:
+            return None
+
+        pass
     # handle_* 系列函数处理收到的消息后构造Context，然后传入produce函数中处理Context和发送回复
     # Context包含了消息的所有信息，包括以下属性
     #   type 消息类型, 包括TEXT、VOICE、IMAGE_CREATE
